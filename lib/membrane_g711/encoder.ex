@@ -38,22 +38,19 @@ defmodule Membrane.G711.Encoder do
     {[], state}
   end
 
-  @impl true
-  def handle_buffer(:input, buffer, _ctx, state) do
-    payload =
-      buffer.payload
-      |> Stream.unfold(fn
-        <<>> -> nil
-        <<chunk::binary-size(2), rest::binary>> -> {chunk, rest}
-        _other -> raise "Failed to encode the payload: payload contains odd number of bytes"
-      end)
-      |> Stream.map(fn <<sample::integer-signed-little-16>> ->
-        state.encoding_lut[(sample + 32_768) >>> 2]
-      end)
-      |> Enum.to_list()
-      |> :binary.list_to_bin()
+  defguardp is_size_even(binary) when binary |> byte_size() |> rem(2) == 0
 
-    {[buffer: {:output, [%Membrane.Buffer{payload: payload}]}], state}
+  @impl true
+  def handle_buffer(:input, %{payload: payload}, _ctx, state) when is_size_even(payload) do
+    for <<sample::integer-signed-little-16 <- payload>>, into: <<>> do
+      <<state.encoding_lut[(sample + 32_768) |> bsr(2)]>>
+    end
+    |> then(&{[buffer: {:output, [%Membrane.Buffer{payload: &1}]}], state})
+  end
+
+  @impl true
+  def handle_buffer(:input, _buffer, _ctx, _state) do
+    raise "Failed to encode the payload: payload contains odd number of bytes"
   end
 
   @impl true

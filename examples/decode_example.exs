@@ -6,16 +6,8 @@ Logger.configure(level: :info)
 
 Mix.install([
   {:membrane_g711_plugin, path: __DIR__ |> Path.join("..") |> Path.expand(), override: true},
-  :membrane_file_plugin,
-  :req
+  :membrane_hackney_plugin
 ])
-
-g711_alaw =
-  Req.get!(
-    "https://raw.githubusercontent.com/membraneframework/static/gh-pages/samples/beep-alaw-8kHz-mono.raw"
-  ).body
-
-File.write!("input.al", g711_alaw)
 
 defmodule Decoding.Pipeline do
   use Membrane.Pipeline
@@ -23,7 +15,10 @@ defmodule Decoding.Pipeline do
   @impl true
   def handle_init(_ctx, _opts) do
     spec =
-      child(:source, %Membrane.File.Source{chunk_size: 40_960, location: "input.al"})
+      child(:source, %Membrane.Hackney.Source{
+        location:
+          "https://raw.githubusercontent.com/membraneframework/static/gh-pages/samples/beep-alaw-8kHz-mono.raw"
+      })
       |> child(:decoder, Membrane.G711.Decoder)
       |> child(:sink, %Membrane.File.Sink{location: "output.raw"})
 

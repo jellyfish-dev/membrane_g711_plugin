@@ -10,6 +10,13 @@ defmodule DecoderTest do
   @fixtures_dir "test/fixtures/decode/"
   @end_of_stream_timeout_ms 500
 
+  describe "DecodingPipeline should" do
+    @describetag :tmp_dir
+    test "decode a 21s long A-law file", ctx do
+      perform_decoding_test("al", ctx.tmp_dir)
+    end
+  end
+
   defp prepare_paths(extension, tmp_dir) do
     in_path = Path.join(@fixtures_dir, "input.#{extension}")
     ref_path = Path.join(@fixtures_dir, "reference-s16le.raw")
@@ -39,12 +46,5 @@ defmodule DecoderTest do
     pid = make_pipeline(in_path, out_path)
     assert_end_of_stream(pid, :sink, :input, @end_of_stream_timeout_ms)
     assert_files_equal(out_path, ref_path)
-  end
-
-  describe "DecodingPipeline should" do
-    @describetag :tmp_dir
-    test "decode a 21s long A-law file", ctx do
-      perform_decoding_test("al", ctx.tmp_dir)
-    end
   end
 end

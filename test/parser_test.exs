@@ -22,35 +22,30 @@ defmodule ParserTest do
   @silence RawAudio.silence(@faux_stream_format, @silence_duration)
 
   test "parser adds timestamps" do
-    buffers = Enum.map(1..10, fn _idx -> @silence end)
-
-    structure = [
-      child(:source, %Source{output: buffers, stream_format: @stream_format})
-      |> child(:parser, %Parser{overwrite_pts?: true})
-      |> child(:sink, Sink)
-    ]
-
-    assert pipeline = Pipeline.start_link_supervised!(spec: structure)
-    assert_end_of_stream(pipeline, :sink)
-
-    for i <- 0..9 do
-      pts = i * @silence_duration
-      assert_sink_buffer(pipeline, :sink, %Buffer{pts: ^pts, payload: @silence})
-    end
+    perform_parsing_test_with_buffer_checks()
   end
 
   test "parser adds timestamps with offset" do
-    offset = 10
+    perform_parsing_test_with_buffer_checks(10)
+  end
+
+  test "parser can have `RemoteStream` as input" do
+    perform_parsing_test(
+      %Membrane.File.Source{location: "test/fixtures/decode/input.al"},
+      %Parser{stream_format: @stream_format}
+    )
+  end
+
+  defp perform_parsing_test_with_buffer_checks(offset \\ 0) do
     buffers = Enum.map(1..10, fn _idx -> @silence end)
 
-    structure = [
-      child(:source, %Source{output: buffers, stream_format: @stream_format})
-      |> child(:parser, %Parser{overwrite_pts?: true, pts_offset: offset})
-      |> child(:sink, Sink)
-    ]
+    parser_spec =
+      if offset != 0,
+        do: %Parser{overwrite_pts?: true, pts_offset: offset},
+        else: %Parser{overwrite_pts?: true}
 
-    assert pipeline = Pipeline.start_link_supervised!(spec: structure)
-    assert_end_of_stream(pipeline, :sink)
+    pipeline =
+      perform_parsing_test(%Source{output: buffers, stream_format: @stream_format}, parser_spec)
 
     for i <- 0..9 do
       pts = i * @silence_duration + offset
@@ -58,14 +53,16 @@ defmodule ParserTest do
     end
   end
 
-  test "parser can have `RemoteStream` as input" do
-    structure = [
-      child(:source, %Membrane.File.Source{location: "test/fixtures/decode/input.al"})
-      |> child(:parser, %Parser{stream_format: @stream_format})
+  defp perform_parsing_test(source_spec, parser_spec) do
+    spec = [
+      child(:source, source_spec)
+      |> child(:parser, parser_spec)
       |> child(:sink, Sink)
     ]
 
-    assert pipeline = Pipeline.start_link_supervised!(spec: structure)
+    assert pipeline = Pipeline.start_link_supervised!(spec: spec)
     assert_end_of_stream(pipeline, :sink)
+
+    pipeline
   end
 end

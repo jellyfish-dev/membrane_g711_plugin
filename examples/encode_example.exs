@@ -8,16 +8,8 @@ Mix.install([
   {:membrane_g711_plugin, path: __DIR__ |> Path.join("..") |> Path.expand(), override: true},
   :membrane_raw_audio_parser_plugin,
   :membrane_raw_audio_format,
-  :membrane_file_plugin,
-  :req
+  :membrane_hackney_plugin
 ])
-
-raw_audio =
-  Req.get!(
-    "https://raw.githubusercontent.com/membraneframework/static/gh-pages/samples/beep-s16le-8kHz-mono.raw"
-  ).body
-
-File.write!("input.raw", raw_audio)
 
 defmodule Encoding.Pipeline do
   use Membrane.Pipeline
@@ -25,7 +17,10 @@ defmodule Encoding.Pipeline do
   @impl true
   def handle_init(_ctx, _opts) do
     spec =
-      child(:source, %Membrane.File.Source{chunk_size: 40_960, location: "input.raw"})
+      child(:source, %Membrane.Hackney.Source{
+        location:
+          "https://raw.githubusercontent.com/membraneframework/static/gh-pages/samples/beep-s16le-8kHz-mono.raw"
+      })
       |> child(:parser, %Membrane.RawAudioParser{
         stream_format: %Membrane.RawAudio{
           sample_format: :s16le,

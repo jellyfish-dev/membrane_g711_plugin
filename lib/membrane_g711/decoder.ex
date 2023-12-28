@@ -33,19 +33,11 @@ defmodule Membrane.G711.Decoder do
   end
 
   @impl true
-  def handle_buffer(:input, buffer, _ctx, state) do
-    payload =
-      buffer.payload
-      |> :binary.bin_to_list()
-      |> Stream.map(fn sample ->
-        linear_sample = state.decoding_lut[sample]
-
-        <<linear_sample::integer-signed-little-16>>
-      end)
-      |> Enum.to_list()
-      |> :binary.list_to_bin()
-
-    {[buffer: {:output, [%Membrane.Buffer{payload: payload}]}], state}
+  def handle_buffer(:input, %{payload: payload}, _ctx, state) do
+    for <<sample::8 <- payload>>, into: <<>> do
+      <<state.decoding_lut[sample]::integer-signed-little-16>>
+    end
+    |> then(&{[buffer: {:output, [%Membrane.Buffer{payload: &1}]}], state})
   end
 
   @impl true
