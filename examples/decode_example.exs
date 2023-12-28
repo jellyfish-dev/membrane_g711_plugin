@@ -6,6 +6,7 @@ Logger.configure(level: :info)
 
 Mix.install([
   {:membrane_g711_plugin, path: __DIR__ |> Path.join("..") |> Path.expand(), override: true},
+  :membrane_file_plugin,
   :membrane_hackney_plugin
 ])
 
