@@ -12,11 +12,8 @@ defmodule Membrane.G711.Encoder do
 
   use Membrane.Filter
 
-  import Bitwise
-
   require Membrane.G711
 
-  alias Membrane.G711.LUTBuilder
   alias Membrane.{G711, RawAudio}
 
   def_input_pad :input,
@@ -33,7 +30,7 @@ defmodule Membrane.G711.Encoder do
 
   @impl true
   def handle_init(_ctx, _opts) do
-    state = %{encoding_lut: LUTBuilder.build_linear_to_alaw()}
+    state = %{}
 
     {[], state}
   end
@@ -43,7 +40,7 @@ defmodule Membrane.G711.Encoder do
   @impl true
   def handle_buffer(:input, %{payload: payload}, _ctx, state) when is_size_even(payload) do
     for <<sample::integer-signed-little-16 <- payload>>, into: <<>> do
-      <<state.encoding_lut[(sample + 32_768) |> bsr(2)]>>
+      <<G711.LUT.alaw_encode(sample)>>
     end
     |> then(&{[buffer: {:output, [%Membrane.Buffer{payload: &1}]}], state})
   end

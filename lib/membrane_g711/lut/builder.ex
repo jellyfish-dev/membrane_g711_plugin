@@ -1,4 +1,4 @@
-defmodule Membrane.G711.LUTBuilder do
+defmodule Membrane.G711.LUT.Builder do
   @moduledoc false
 
   import Bitwise

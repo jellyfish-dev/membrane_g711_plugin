@@ -9,7 +9,6 @@ defmodule Membrane.G711.Decoder do
 
   require Membrane.G711
 
-  alias Membrane.G711.LUTBuilder
   alias Membrane.{G711, RawAudio, RemoteStream}
 
   @sample_format :s16le
@@ -27,7 +26,7 @@ defmodule Membrane.G711.Decoder do
 
   @impl true
   def handle_init(_ctx, _opts) do
-    state = %{decoding_lut: LUTBuilder.build_alaw_to_linear()}
+    state = %{}
 
     {[], state}
   end
@@ -35,7 +34,7 @@ defmodule Membrane.G711.Decoder do
   @impl true
   def handle_buffer(:input, %{payload: payload}, _ctx, state) do
     for <<sample::8 <- payload>>, into: <<>> do
-      <<state.decoding_lut[sample]::integer-signed-little-16>>
+      <<G711.LUT.alaw_decode(sample)::integer-signed-little-16>>
     end
     |> then(&{[buffer: {:output, [%Membrane.Buffer{payload: &1}]}], state})
   end
