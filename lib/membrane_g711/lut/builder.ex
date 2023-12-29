@@ -10,7 +10,7 @@ defmodule Membrane.G711.LUT.Builder do
   @sign_bit 0x80
   @seg_mask 0x70
 
-  @spec build_alaw_to_linear() :: %{(0..255) => 0..65_535}
+  @spec build_alaw_to_linear() :: %{(0..255) => -32_768..32_767}
   def build_alaw_to_linear() do
     Map.new(0..255, fn i -> {i, alaw_to_linear(i)} end)
   end
