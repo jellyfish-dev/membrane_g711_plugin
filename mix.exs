@@ -31,6 +31,7 @@ defmodule Membrane.G711.Plugin.Mixfile do
     ]
   end
 
+  defp elixirc_paths(:benchmark), do: ["lib", "benchmarks"]
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_env), do: ["lib"]
 
@@ -39,11 +40,19 @@ defmodule Membrane.G711.Plugin.Mixfile do
       {:membrane_core, "~> 1.0"},
       {:membrane_g711_format, "~> 0.1.0"},
       {:membrane_raw_audio_format, "~> 0.12.0"},
+
+      # Test deps
       {:membrane_file_plugin, "~> 0.16.0", only: :test},
       {:membrane_raw_audio_parser_plugin, "~> 0.4.0", only: :test},
+
+      # Dev deps
       {:ex_doc, "~> 0.29", only: :dev, runtime: false},
       {:credo, "~> 1.6", only: :dev, runtime: false},
-      {:dialyxir, "~> 1.1", only: :dev, runtime: false}
+      {:dialyxir, "~> 1.1", only: :dev, runtime: false},
+
+      # Benchmark deps
+      {:benchee, "~> 1.0", only: :benchmark},
+      {:membrane_g711_ffmpeg_plugin, "~> 0.1.1", only: :benchmark}
     ]
   end
 
