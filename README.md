@@ -26,6 +26,10 @@ end
 
 For usage examples, refer to [the scripts in `examples/` directory](https://github.com/jellyfish-dev/membrane_g711_plugin/tree/main/examples/).
 
+## Benchmarks
+
+A summary of the benchmarks carried out for this plugin is available in [the `benchmarks/` directory](https://github.com/jellyfish-dev/membrane_g711_plugin/tree/main/benchmarks/).
+
 ## Copyright and License
 
 Copyright 2023, [Software Mansion](https://swmansion.com/?utm_source=git&utm_medium=readme&utm_campaign=membrane_template_plugin)
